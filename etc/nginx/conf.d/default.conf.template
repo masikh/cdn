@@ -1,0 +1,33 @@
+server {
+    listen 6001;
+    server_name cdn;
+
+    location /media {
+        secure_link_secret ${CDN_SECRET};
+        if ($secure_link = "") { return 403; }
+        
+        rewrite_by_lua_block {
+            local decrypted = ngx.decode_base64(ngx.var.secure_link);
+
+            local ext = decrypted:match("(.mkv)$")
+            if ext then
+                ngx.header['Content-Type'] = 'video/x-matroska'
+                ngx.header['filename'] = 'file.mkv'
+            else
+                ngx.header['Content-Type'] = 'video/mp4'
+                ngx.header['filename'] = 'file.mp4'
+            end
+
+            ngx.log(ngx.STDERR, ngx.header['Content-Type'])
+            ngx.log(ngx.STDERR, ngx.header['filename'])
+            ngx.log(ngx.STDERR, decrypted)
+
+            ngx.req.set_uri("/libraries/" .. decrypted);
+        }
+    }
+
+    location / {
+        internal;
+        root /libraries;
+    }
+}

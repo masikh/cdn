@@ -1,0 +1,23 @@
+version: '3.7'
+services:
+  cdn:
+    image: your-registry/cdn:latest
+    ports:
+      - 6001:6001
+    environment:
+      SECRET: ${CDN_SECRET}
+    volumes:
+      - movies:/libraries/movies
+      - tvshows:/libraries/tvshows
+
+volumes:
+  movies:
+    driver_opts:
+      type: "nfs"
+      o: ${NFS_SERVER}
+      device: ${NFS_EXPORT_MOVIES}
+  tvshows:
+    driver_opts:
+      type: "nfs"
+      o: ${NFS_SERVER}
+      device: ${NFS_EXPORT_TVSHOWS}
